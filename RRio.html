@@ -11,7 +11,7 @@
 
 <meta name="author" content="Pedro Pablo Skorin" />
 
-<meta name="date" content="2020-09-23" />
+<meta name="date" content="2020-09-24" />
 
 <title>Prova de R in Rio</title>
 
@@ -192,11 +192,15 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Prova de R in Rio</h1>
 <h4 class="author">Pedro Pablo Skorin</h4>
-<h4 class="date">September 23, 2020</h4>
+<h4 class="date">September 24, 2020</h4>
 
 </div>
 
 
+<div id="introducao" class="section level2">
+<h2>Introdução</h2>
+<p>Obrigado pela oportunidade em participar da prova. Para a realização dos exercícios, utilizei o pacote <em>tidyverse</em> nas questões 2 e 3.</p>
+</div>
 <div id="questao-1" class="section level2">
 <h2>Questão 1</h2>
 <div id="objetivo" class="section level3">
@@ -205,7 +209,7 @@ $(document).ready(function () {
 </div>
 <div id="resolucao" class="section level3">
 <h3>Resolução</h3>
-<p>A resolução se encontra no cógido abaixo. O usuário pode escolher se quer os maiores ou menores valores do vetor pelo argumento <em>min</em>. O padrão da função é responder com os maiores valores do vetor, entretanto ao selecionar <em>min = T</em>, os menores valores serão devolvidos.</p>
+<p>A resolução se encontra no cógido abaixo. O usuário pode escolher se quer os maiores ou menores valores do vetor pelo argumento <em>min</em>. O padrão da função é responder com os maiores valores do vetor, entretanto ao selecionar <em>min = T</em> os menores valores serão devolvidos.</p>
 <pre class="r"><code>extremos = function(X, k, min = F) {
   # Primeiro fazemos a verificacao da classe do vetor. Se quisermos incluir vetores do formato 'integer', basta substituir a condicao de erro para '!(class(X) %in% c(&quot;numeric&quot;, &quot;integer&quot;))'
   if(class(X) != &quot;numeric&quot;) {
@@ -238,29 +242,27 @@ extremos(c(1,2,3,&quot;pi&quot;,4,5), 4, min = F)</code></pre>
 <div id="resolucao-1" class="section level3">
 <h3>Resolução</h3>
 <p>A resolução se encontra no cógido abaixo.</p>
-<pre class="r"><code># Criacao da sequencia dos primeiros 100 numeros inteiros
-X = data.frame(&quot;sequencia&quot; = seq(1,100))
+<pre class="r"><code>library(tidyverse)
 
 # Criacao da funcao que sera realizada em todos esses inteiros. Pode-se alterar os valores de n e sd se necessario
-NormFunc &lt;- function(x) rnorm(n = 100, mean = x, sd = 1)
+NormFunc &lt;- function(x) {rnorm(n = 100, mean = x, sd = 1)}
 
-# Aplicacao da funcao NormFunc em cada elemento de X utilizando funcao apply
-w = apply(X, MARGIN = 1, FUN = NormFunc)
-
-# Concatenacao do resultado w em seu respectivo numero inteiro n em X. Note que w eh transposto
-Y = cbind(X, data.frame(t(w)))
-
-# Y representa uma dataframe com uma primeira coluna representando a sequencia dos primeiros 100 inteiros. Alem disso, a dataframe tem outras 100 colunas representando valores aleatorios da distribuicao normal com a media sendo a linha correspondente. Note que temos as dimensoes desejadas
-dim(Y)</code></pre>
+# Aplicacao da funcao via purrr
+Y = seq(1,100) %&gt;% 
+  map(NormFunc) %&gt;%
+  map_dfr(~as.data.frame(t(.x))) %&gt;% 
+  mutate(seq(1,100))</code></pre>
+<p><em>Y</em> representa uma <em>dataframe</em> de 100 linhas e 101 colunas. As primeiras 100 colunas representam as simulacoes dos números tiradas de normal com media <em>n</em>, onde <em>n</em> representa a linha da <em>dataframe</em>. A última coluna representa a sequência geradora das médias. Note que temos as dimensões desejadas.</p>
+<pre class="r"><code>dim(Y)</code></pre>
 <pre><code>## [1] 100 101</code></pre>
-<pre class="r"><code># Para verificar o resultado, fazemos a selecao de 5 linhas e 5 colunas aleatorias da dataframe 
-print(Y[sample(1:100,5),c(1,sample(2:101,5))])</code></pre>
-<pre><code>##    sequencia      X80       X4       X5      X13      X57
-## 64        64 63.86918 65.51111 64.53172 63.54651 65.24019
-## 25        25 24.82323 23.81562 25.02885 26.35654 25.69508
-## 76        76 75.66659 76.22613 77.76228 75.04800 75.54421
-## 22        22 21.98752 22.39272 21.36663 22.68791 22.55762
-## 46        46 44.48779 46.10288 44.35814 44.67781 46.75042</code></pre>
+<p>Para verificar o resultado, fazemos a seleção de 5 linhas e 5 colunas aleatórias da <em>dataframe</em>.</p>
+<pre class="r"><code>print(Y[sample(1:100,5),c(sample(1:100,5))])</code></pre>
+<pre><code>##         V11      V27      V13      V90      V51
+## 97 96.23140 96.67628 97.77675 97.64435 96.60421
+## 50 51.32821 50.44575 49.69006 48.98023 50.26546
+## 72 72.44406 72.01931 72.31480 71.80552 73.48460
+## 21 20.82632 21.37657 20.45554 22.51677 20.61743
+## 66 67.11248 66.84868 66.53469 65.98333 67.07538</code></pre>
 </div>
 </div>
 <div id="questao-3" class="section level2">
@@ -273,7 +275,6 @@ print(Y[sample(1:100,5),c(1,sample(2:101,5))])</code></pre>
 <h3>Resolução</h3>
 <p>Primeiro carregamos os dados do site.</p>
 <pre class="r"><code>library(rio)
-library(tidyverse)
 (data &lt;- import(&quot;https://www.rug.nl/ggdc/docs/10sd_jan15_2014.xlsx&quot;,
                 sheet = 2, setclass = &quot;tibble&quot;) %&gt;%
     filter(Variable == &quot;VA_Q05&quot; | Variable == &quot;EMP&quot;) %&gt;%
@@ -387,10 +388,6 @@ list(&quot;razao&quot; = length(unique(X))/length(X),
 ## 
 ## $q_4
 ## [1] 6.75</code></pre>
-<pre class="r"><code># Perceba que o ultimo exemplo esta correto. Como nchar(&quot;Brasil&quot;) = 6, nchar(&quot;Brasil&quot;) = 9, nchar(&quot;Uruguai&quot;) = 7 e nchar(&quot;Chile&quot;) = 5, segue que a media deve ser igual ao resultado:
-
-(6*2 + 9*2 + 7*2 + 5*2)/(2*4)</code></pre>
-<pre><code>## [1] 6.75</code></pre>
 </div>
 </div>
 <div id="questao-5" class="section level2">
@@ -404,7 +401,7 @@ list(&quot;razao&quot; = length(unique(X))/length(X),
 <p>Para realizar o exercício, eu me baseei na explicação encontrada em <a href="https://stackoverflow.com/questions/18172257/efficient-calculation-of-fibonacci-series" class="uri">https://stackoverflow.com/questions/18172257/efficient-calculation-of-fibonacci-series</a>. Primeiramente, perceba como é dada a sequência de Fibonacci:</p>
 <p><span class="math display">\[F_0 = 0, F_1 = 1 \]</span></p>
 <p><span class="math display">\[F_n = F_{n-1} - F_{n-2}, \text{ para } n &gt; 1 \]</span></p>
-<p>O código consistirá na construção “de baixo para cima” dessa sequência. A função <em>fib</em> recebe o argumento <em>n</em> que significa até que elemento será devolvida a sequência de Fibonacci. Se a usuária quiser exatamante o elemento <em>n</em>, ela pode modificar o argumento <em>exato</em> para opção <em>T</em>.</p>
+<p>O código consistirá na construção “de baixo para cima” dessa sequência. A função <em>fib</em> recebe o argumento <em>n</em> que significa até que elemento será devolvida a sequência de Fibonacci. Se a usuária quiser exatamante o elemento <em>n</em>, ela pode modificar o argumento <em>exato</em> para opção <em>TRUE</em>.</p>
 <pre class="r"><code>fib = function(n, exato = F) {
   # Como o objetivo nao eh possivel para inteiros menores que 1, precisamos verificar a entrada de n
   if (n &lt; 1 | n != round(n)) {

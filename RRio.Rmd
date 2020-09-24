@@ -9,6 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
+## Introdução
+
+Obrigado pela oportunidade em participar da prova. Para a realização dos exercícios, utilizei o pacote *tidyverse* nas questões 2 e 3.
+
 ## Questão 1
 
 ### Objetivo 
@@ -16,7 +20,7 @@ Escrever uma função que recebe um vetor numérico e devolve os seus *k* maiore
 
 ### Resolução
 
-A resolução se encontra no cógido abaixo. O usuário pode escolher se quer os maiores ou menores valores do vetor pelo argumento *min*. O padrão da função é responder com os maiores valores do vetor, entretanto ao selecionar *min = T*, os menores valores serão devolvidos.
+A resolução se encontra no cógido abaixo. O usuário pode escolher se quer os maiores ou menores valores do vetor pelo argumento *min*. O padrão da função é responder com os maiores valores do vetor, entretanto ao selecionar *min = T* os menores valores serão devolvidos.
 
 ```{r q_1_1}
 extremos = function(X, k, min = F) {
@@ -54,23 +58,32 @@ Gerar um dataframe contendo um vetor contendo os 100 primeiros números inteiros
 A resolução se encontra no cógido abaixo.
 
 ```{r q_2_1}
-# Criacao da sequencia dos primeiros 100 numeros inteiros
-X = data.frame("sequencia" = seq(1,100))
+library(tidyverse)
 
 # Criacao da funcao que sera realizada em todos esses inteiros. Pode-se alterar os valores de n e sd se necessario
-NormFunc <- function(x) rnorm(n = 100, mean = x, sd = 1)
+NormFunc <- function(x) {rnorm(n = 100, mean = x, sd = 1)}
 
-# Aplicacao da funcao NormFunc em cada elemento de X utilizando funcao apply
-w = apply(X, MARGIN = 1, FUN = NormFunc)
+# Aplicacao da funcao via purrr
+Y = seq(1,100) %>% 
+  map(NormFunc) %>%
+  map_dfr(~as.data.frame(t(.x))) %>% 
+  mutate(seq(1,100))
 
-# Concatenacao do resultado w em seu respectivo numero inteiro n em X. Note que w eh transposto
-Y = cbind(X, data.frame(t(w)))
+```
 
-# Y representa uma dataframe com uma primeira coluna representando a sequencia dos primeiros 100 inteiros. Alem disso, a dataframe tem outras 100 colunas representando valores aleatorios da distribuicao normal com a media sendo a linha correspondente. Note que temos as dimensoes desejadas
+
+*Y* representa uma *dataframe* de 100 linhas e 101 colunas. As primeiras 100 colunas representam as simulacoes dos números tiradas de normal com media *n*, onde *n* representa a linha da *dataframe*. A última coluna representa a sequência geradora das médias. Note que temos as dimensões desejadas.
+
+
+```{r q_2_2}
 dim(Y)
+```
 
-# Para verificar o resultado, fazemos a selecao de 5 linhas e 5 colunas aleatorias da dataframe 
-print(Y[sample(1:100,5),c(1,sample(2:101,5))])
+Para verificar o resultado, fazemos a seleção de 5 linhas e 5 colunas aleatórias da *dataframe*.
+
+```{r q_2_3}
+
+print(Y[sample(1:100,5),c(sample(1:100,5))])
 ```
 
 ## Questão 3
@@ -84,7 +97,6 @@ Primeiro carregamos os dados do site.
 
 ```{r q_3_1}
 library(rio)
-library(tidyverse)
 (data <- import("https://www.rug.nl/ggdc/docs/10sd_jan15_2014.xlsx",
                 sheet = 2, setclass = "tibble") %>%
     filter(Variable == "VA_Q05" | Variable == "EMP") %>%
@@ -103,7 +115,6 @@ Depois disso, utilizaremos a função *pivot_wider* para levar as opções *VA_Q
 ![](https://raw.githubusercontent.com/pedroskorin/RinRio/master/imagem_2.png)
 
 ```{r q_3_2}
-
 
 data_tidy = data %>% 
   # Primeiro aplicamos o pivot_longer
@@ -131,7 +142,7 @@ Fazer uma função que recebe um vetor e testa seu tipo. Se for numérico, devol
 A resolução se encontra no cógido abaixo. A função *q_4* recebe um vetor *X* e devolve um elemento a depender dos critérios estabelecidos no objetivo da questão.
 
 
-```{r q_4}
+```{r q_4_1}
 q_4 = function(X) {
   # Teste de classe numerica. Como no exercicio 1, se quisermos incluir a classe 'integer', basta alterar a condicao abaixo para 'class(X) %in% c("numeric","integer")'
   if (class(X) == "numeric") {
@@ -169,10 +180,6 @@ X = c(rep("Brasil", 2), rep("Argentina", 2), rep("Uruguai", 2), rep("Chile", 2))
 list("razao" = length(unique(X))/length(X),
      "q_4" = q_4(X))
 
-# Perceba que o ultimo exemplo esta correto. Como nchar("Brasil") = 6, nchar("Brasil") = 9, nchar("Uruguai") = 7 e nchar("Chile") = 5, segue que a media deve ser igual ao resultado:
-
-(6*2 + 9*2 + 7*2 + 5*2)/(2*4)
-
 ```
 
 ## Questão 5
@@ -190,7 +197,7 @@ $$F_0 = 0, F_1 = 1 $$
 
 $$F_n = F_{n-1} - F_{n-2}, \text{ para } n > 1 $$
 
-O código consistirá na construção "de baixo para cima" dessa sequência. A função *fib* recebe o argumento *n* que significa até que elemento será devolvida a sequência de Fibonacci. Se a usuária quiser exatamante o elemento *n*, ela pode modificar o argumento *exato* para opção *T*.
+O código consistirá na construção "de baixo para cima" dessa sequência. A função *fib* recebe o argumento *n* que significa até que elemento será devolvida a sequência de Fibonacci. Se a usuária quiser exatamante o elemento *n*, ela pode modificar o argumento *exato* para opção *TRUE*.
 
 ```{r q_5_1}
 fib = function(n, exato = F) {
