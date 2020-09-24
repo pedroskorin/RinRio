@@ -1,0 +1,211 @@
+---
+title: "R in Rio"
+author: "Pedro Pablo Skorin"
+date: "September 23, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Introdução
+
+## Questão 1
+
+### Objetivo 
+Escrever uma função que recebe um vetor numérico e devolve os seus k maiores valores. Se o vetor de entrada não for numérico, fazer com que a função devolva um erro informativo. Além disso, fazer com que o usuário possa escolher entre os maiores ou os menores valores do vetor.
+
+### Resolução
+
+A resolução se encontra via cógido abaixo. O usuário pode escolher entre os maiores e menores valores do vetor pelo argumento *min*. O padrão da função é responder com os maiores valores do vetor, entretanto ao selecionar *min = T*, os menores valores serão devolvidos.
+
+```{r q_1_1}
+extremos = function(X, k, min = F) {
+  # Primeiro fazemos a verificacao da classe do vetor
+  if(class(X) != "numeric") {
+    stop("Sua tupla não respeita o Princípio da Boa Ordenação")
+  }
+  # Ordenamos o vetor X (de forma crescente ou decrescente) e escolhemos os primeiros k elementos
+  Y = X[order(X, decreasing = !min)][1:k]
+  return(Y)
+}
+```
+
+### Exemplos
+
+```{r q_1_2, error = T}
+# Exemplo de 3 maiores elementos
+extremos(c(1,2,3,pi,4,5), 3, min = F)
+
+# Exemplo de 3 menores elementos
+extremos(c(1,2,2,pi,5,5), 3, min = T)
+
+# Exemplo de vetor classe "character"
+extremos(c(1,2,3,"pi",4,5), 4, min = F)
+
+```
+
+## Questão 2
+
+### Objetivo 
+Gerar um dataframe contendo um vetor contendo os 100 primeiros números inteiros. Para cada número n simular 100 números tirados de uma normal com média n.
+
+### Resolução
+
+A resolução se encontra via cógido abaixo.
+
+```{r q_2_1}
+# Criacao da sequencia dos primeiros 100 numeros inteiros
+X = data.frame("sequencia" = seq(1,100))
+
+# Criacao da funcao que sera realizada em todos esses inteiros. Pode-se alterar os valores de n e sd se necessario
+NormFunc <- function(x) rnorm(n = 100, mean = x, sd = 1)
+
+# Aplicacao da funcao NormFunc em cada elemento de X utilizando funcao apply
+w = apply(X, MARGIN = 1, FUN = NormFunc)
+
+# Concatenacao do resultado w em seu respectivo numero inteiro n em X. Note que w eh transposto
+Y = cbind(X, data.frame(t(w)))
+
+# Note que as dimensoes de Y estao corretas
+dim(Y)
+
+# Selecao de 5 linhas e 5 colunas aleatorias da dataframe para verificar o resultado
+print(Y[sample(1:100,5),c(1,sample(2:101,5))])
+```
+
+## Questão 3
+
+### Objetivo 
+Transformar os dados recebidos em formato tidy.
+
+### Resolução
+
+Primeiro carregamos os dados do site.
+
+```{r q_3_1}
+library(rio)
+library(tidyverse)
+(data <- import("https://www.rug.nl/ggdc/docs/10sd_jan15_2014.xlsx",
+                sheet = 2, setclass = "tibble") %>%
+    filter(Variable == "VA_Q05" | Variable == "EMP") %>%
+    select(-'Region code', -'Summation of sector GDP'))
+
+```
+
+Agora utilizamos as funções pivot para transformação dos dados em tidy.
+
+```{r q_3_2}
+
+# 
+data_tidy = data %>% 
+  pivot_longer(colnames(data)[5:14], names_to = "Sector", values_to = "valor") %>%
+  pivot_wider(names_from = Variable, values_from = valor)
+
+# Agora apaguam-se as linhas que contenham NA
+data_tidy = na.omit(data_tidy)
+
+data_tidy
+```
+
+## Questão 4
+
+### Objetivo 
+Fazer uma função que recebe um vetor e testa seu tipo. Se for numérico, devolve a média, se for textual tem dois retornos possíveis:
+
+• Se mais de um terço das entradas for única, devolver o número médio de caracteres por entrada.
+
+• Se menos de um terço das entradas for única, devolver a entrada mais comum.
+
+### Resolução
+
+A resolução se encontra no cógido abaixo.
+
+
+```{r q_4}
+q_4 = function(X) {
+  # Teste de classe numerica
+  if (class(X) == "numeric") {
+    return(mean(X))
+  }
+  # Teste de classe texto
+  if (class(X) == "character") {
+    # Verificacao da proporcao de unicos com total no vetor
+    unica = length(unique(X))/length(X)
+    if (unica < 1/3) {
+      # No caso de menos de um terco unico, retorno da entrada mais comum. Isso eh feito encontrando o elemento unico mais frequente na tabela indicada
+      ux <- unique(X)
+      return(ux[which.max(tabulate(match(X, ux)))])
+    } else {
+      # No caso de mais de um terco unico, retorno do numero medio de caracteres. Isso eh feito via aplicacao da media no mapeamente de nchar sobre X
+      return(mean(mapply(nchar, X)))
+    }
+  }
+}
+```
+
+### Exemplos
+
+```{r q_4_2}
+# Exemplo de vetor numerico
+q_4(c(-4,-3,-2,-1,0,1,2,3,4))
+
+# Exemplo de vetor texto com menos de um terco de elementos unicos
+q_4(c(rep("Brasil", 10), rep("Argentina", 5), rep("Uruguai", 2), rep("Chile", 1)))
+
+# Exemplo de vetor texto com mais de um terco de elementos unicos
+q_4(c(rep("Brasil", 3), rep("Argentina", 3), rep("Uruguai", 3), rep("Chile", 3)))
+
+# Perceba que o ultimo exemplo esta correto. Como nchar("Brasil") = 6, nchar("Brasil") = 9, nchar("Uruguai") = 7 e nchar("Chile") = 5, segue que a media deve ser igual ao resltado:
+
+(6*3 + 9*3 + 7*3 + 5*3)/(3*4)
+
+```
+
+## Questão 5
+
+
+### Resolução
+
+Para realizar o exercício, eu me baseei na explicação encontrada em https://stackoverflow.com/questions/18172257/efficient-calculation-of-fibonacci-series. Primeiramente, perceba como é dada a sequência de Fibonacci:
+
+$$F_0 = 0, F_1 = 1 $$
+
+$$F_n = F_{n-1} - F_{n-2}, \text{ para } n > 1 $$
+
+O código consistirá na construção "de baixo para cima" dessa sequência.
+
+```{r q_5_1}
+fib = function(n, exato = F) {
+  # Inclusao dos dois primeiros valores da sequencia
+  fibs = c(0,1)
+  # Para os restantes utilizaremos a formulacao de fibonacci para n > 1
+  for (i in 1:(n-1)) {
+    fibs = append(fibs, tail(fibs,1) + tail(fibs,2)[1])
+  }
+  # Se quisermos o valor exato, basta solicitar pelo ultimo elemento da sequencia criada
+  if (exato) {
+    return(tail(fibs,1))
+  } else {
+    # Se quisermos a sequencia inteira, basta solicitar diretamente a sequencia criada
+  return(fibs)
+  }
+}
+
+```
+
+### Exemplos
+
+```{r q_5_2}
+
+# Exemplo dos primeiros 15 termos
+
+fib(15)
+
+# Exemplo do termo numero 10
+
+fib(10, exato = T)
+
+```
+
