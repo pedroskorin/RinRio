@@ -1,7 +1,7 @@
 ---
-title: "R in Rio"
+title: "Prova de R in Rio"
 author: "Pedro Pablo Skorin"
-date: "September 23, 2020"
+date: "September 24, 2020"
 output: html_document
 ---
 
@@ -9,22 +9,20 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-## Introdução
-
 ## Questão 1
 
 ### Objetivo 
-Escrever uma função que recebe um vetor numérico e devolve os seus k maiores valores. Se o vetor de entrada não for numérico, fazer com que a função devolva um erro informativo. Além disso, fazer com que o usuário possa escolher entre os maiores ou os menores valores do vetor.
+Escrever uma função que recebe um vetor numérico e devolve os seus *k* maiores valores. Se o vetor de entrada não for numérico, fazer com que a função devolva um erro informativo. Além disso, fazer com que o usuário possa escolher entre os maiores ou os menores valores do vetor.
 
 ### Resolução
 
-A resolução se encontra via cógido abaixo. O usuário pode escolher entre os maiores e menores valores do vetor pelo argumento *min*. O padrão da função é responder com os maiores valores do vetor, entretanto ao selecionar *min = T*, os menores valores serão devolvidos.
+A resolução se encontra no cógido abaixo. O usuário pode escolher se quer os maiores ou menores valores do vetor pelo argumento *min*. O padrão da função é responder com os maiores valores do vetor, entretanto ao selecionar *min = T*, os menores valores serão devolvidos.
 
 ```{r q_1_1}
 extremos = function(X, k, min = F) {
-  # Primeiro fazemos a verificacao da classe do vetor
+  # Primeiro fazemos a verificacao da classe do vetor. Se quisermos incluir vetores do formato 'integer', basta substituir a condicao de erro para '!(class(X) %in% c("numeric", "integer"))'
   if(class(X) != "numeric") {
-    stop("Sua tupla não respeita o Princípio da Boa Ordenação")
+    stop("O vetor precisa ser da classe 'numeric'")
   }
   # Ordenamos o vetor X (de forma crescente ou decrescente) e escolhemos os primeiros k elementos
   Y = X[order(X, decreasing = !min)][1:k]
@@ -41,7 +39,7 @@ extremos(c(1,2,3,pi,4,5), 3, min = F)
 # Exemplo de 3 menores elementos
 extremos(c(1,2,2,pi,5,5), 3, min = T)
 
-# Exemplo de vetor classe "character"
+# Exemplo de vetor classe 'character'
 extremos(c(1,2,3,"pi",4,5), 4, min = F)
 
 ```
@@ -49,11 +47,11 @@ extremos(c(1,2,3,"pi",4,5), 4, min = F)
 ## Questão 2
 
 ### Objetivo 
-Gerar um dataframe contendo um vetor contendo os 100 primeiros números inteiros. Para cada número n simular 100 números tirados de uma normal com média n.
+Gerar um dataframe contendo um vetor contendo os 100 primeiros números inteiros. Para cada número *n* simular 100 números tirados de uma normal com média *n*.
 
 ### Resolução
 
-A resolução se encontra via cógido abaixo.
+A resolução se encontra no cógido abaixo.
 
 ```{r q_2_1}
 # Criacao da sequencia dos primeiros 100 numeros inteiros
@@ -68,17 +66,17 @@ w = apply(X, MARGIN = 1, FUN = NormFunc)
 # Concatenacao do resultado w em seu respectivo numero inteiro n em X. Note que w eh transposto
 Y = cbind(X, data.frame(t(w)))
 
-# Note que as dimensoes de Y estao corretas
+# Y representa uma dataframe com uma primeira coluna representando a sequencia dos primeiros 100 inteiros. Alem disso, a dataframe tem outras 100 colunas representando valores aleatorios da distribuicao normal com a media sendo a linha correspondente. Note que temos as dimensoes desejadas
 dim(Y)
 
-# Selecao de 5 linhas e 5 colunas aleatorias da dataframe para verificar o resultado
+# Para verificar o resultado, fazemos a selecao de 5 linhas e 5 colunas aleatorias da dataframe 
 print(Y[sample(1:100,5),c(1,sample(2:101,5))])
 ```
 
 ## Questão 3
 
 ### Objetivo 
-Transformar os dados recebidos em formato tidy.
+Transformar os dados recebidos em formato *tidy*.
 
 ### Resolução
 
@@ -94,16 +92,26 @@ library(tidyverse)
 
 ```
 
-Agora utilizamos as funções pivot para transformação dos dados em tidy.
+Utilizamos as funções *pivot* para transformação dos dados em *tidy*.
+
+Primeiro utilizaremos a função *pivot_longer* para transformar as últimas 10 colunas em um novo formato distribuido em linhas. O resultado da operação está exemplificado na imagem abaixo:
+
+![](https://raw.githubusercontent.com/pedroskorin/RinRio/master/imagem_1.png)
+
+Depois disso, utilizaremos a função *pivot_wider* para levar as opções *VA_Q05* e *EMP* da coluna *Variable* para duas novas colunas. O resultado da operação está exemplificado na imagem abaixo:
+
+![](https://raw.githubusercontent.com/pedroskorin/RinRio/master/imagem_2.png)
 
 ```{r q_3_2}
 
-# 
+
 data_tidy = data %>% 
+  # Primeiro aplicamos o pivot_longer
   pivot_longer(colnames(data)[5:14], names_to = "Sector", values_to = "valor") %>%
+  # Então aplicamos o pivot_wider
   pivot_wider(names_from = Variable, values_from = valor)
 
-# Agora apaguam-se as linhas que contenham NA
+# Agora apagam-se as linhas que contenham NA
 data_tidy = na.omit(data_tidy)
 
 data_tidy
@@ -112,7 +120,7 @@ data_tidy
 ## Questão 4
 
 ### Objetivo 
-Fazer uma função que recebe um vetor e testa seu tipo. Se for numérico, devolve a média, se for textual tem dois retornos possíveis:
+Fazer uma função que recebe um vetor e testa seu tipo. Se for numérico, devolve a média, se for textual, tem dois retornos possíveis:
 
 • Se mais de um terço das entradas for única, devolver o número médio de caracteres por entrada.
 
@@ -120,21 +128,21 @@ Fazer uma função que recebe um vetor e testa seu tipo. Se for numérico, devol
 
 ### Resolução
 
-A resolução se encontra no cógido abaixo.
+A resolução se encontra no cógido abaixo. A função *q_4* recebe um vetor *X* e devolve um elemento a depender dos critérios estabelecidos no objetivo da questão.
 
 
 ```{r q_4}
 q_4 = function(X) {
-  # Teste de classe numerica
+  # Teste de classe numerica. Como no exercicio 1, se quisermos incluir a classe 'integer', basta alterar a condicao abaixo para 'class(X) %in% c("numeric","integer")'
   if (class(X) == "numeric") {
     return(mean(X))
   }
   # Teste de classe texto
   if (class(X) == "character") {
-    # Verificacao da proporcao de unicos com total no vetor
+    # Construcao da proporcao de unicos com total no vetor para verificacao
     unica = length(unique(X))/length(X)
-    if (unica < 1/3) {
-      # No caso de menos de um terco unico, retorno da entrada mais comum. Isso eh feito encontrando o elemento unico mais frequente na tabela indicada
+    if (unica <= 1/3) {
+      # No caso de menos de um terco unico, retorno da entrada mais comum. Para isso, constroe-se uma tabela das aparicoes de ux (vetor com unicos de X) em X. O objetivo eh garantir a mensuracao de quantes vezes aparecem ux em X. Disso se seleciona o valor com mais aparicoes na tabela
       ux <- unique(X)
       return(ux[which.max(tabulate(match(X, ux)))])
     } else {
@@ -152,18 +160,26 @@ q_4 = function(X) {
 q_4(c(-4,-3,-2,-1,0,1,2,3,4))
 
 # Exemplo de vetor texto com menos de um terco de elementos unicos
-q_4(c(rep("Brasil", 10), rep("Argentina", 5), rep("Uruguai", 2), rep("Chile", 1)))
+X = c(rep("Brasil", 10), rep("Argentina", 5), rep("Uruguai", 2), rep("Chile", 1))
+list("razao" = length(unique(X))/length(X),
+     "q_4" = q_4(X))
 
 # Exemplo de vetor texto com mais de um terco de elementos unicos
-q_4(c(rep("Brasil", 3), rep("Argentina", 3), rep("Uruguai", 3), rep("Chile", 3)))
+X = c(rep("Brasil", 2), rep("Argentina", 2), rep("Uruguai", 2), rep("Chile", 2))
+list("razao" = length(unique(X))/length(X),
+     "q_4" = q_4(X))
 
-# Perceba que o ultimo exemplo esta correto. Como nchar("Brasil") = 6, nchar("Brasil") = 9, nchar("Uruguai") = 7 e nchar("Chile") = 5, segue que a media deve ser igual ao resltado:
+# Perceba que o ultimo exemplo esta correto. Como nchar("Brasil") = 6, nchar("Brasil") = 9, nchar("Uruguai") = 7 e nchar("Chile") = 5, segue que a media deve ser igual ao resultado:
 
-(6*3 + 9*3 + 7*3 + 5*3)/(3*4)
+(6*2 + 9*2 + 7*2 + 5*2)/(2*4)
 
 ```
 
 ## Questão 5
+
+### Objetivo
+
+Escrever uma função que recebe um parâmetro *n* e devolve a sequência de Fibonacci até o *n*-ésimo elemento. Além disso, fazer com que o usuário possa dar como argumento algum valor *TRUE/FALSE* para um parâmetro e isso alternar o retorno da função entre a sequência completa até *n* ou apenas o *n*-ésimo elemento.
 
 
 ### Resolução
@@ -174,21 +190,27 @@ $$F_0 = 0, F_1 = 1 $$
 
 $$F_n = F_{n-1} - F_{n-2}, \text{ para } n > 1 $$
 
-O código consistirá na construção "de baixo para cima" dessa sequência.
+O código consistirá na construção "de baixo para cima" dessa sequência. A função *fib* recebe o argumento *n* que significa até que elemento será devolvida a sequência de Fibonacci. Se a usuária quiser exatamante o elemento *n*, ela pode modificar o argumento *exato* para opção *T*.
 
 ```{r q_5_1}
 fib = function(n, exato = F) {
+  # Como o objetivo nao eh possivel para inteiros menores que 1, precisamos verificar a entrada de n
+  if (n < 1 | n != round(n)) {
+    stop("n deve ser um número inteiro maior que 0")
+  }
   # Inclusao dos dois primeiros valores da sequencia
   fibs = c(0,1)
-  # Para os restantes utilizaremos a formulacao de fibonacci para n > 1
-  for (i in 1:(n-1)) {
-    fibs = append(fibs, tail(fibs,1) + tail(fibs,2)[1])
+  # Para os restantes utilizaremos a formulacao de Fibonacci com n > 1
+  if (n > 1) {
+    for (i in 1:(n-1)) {
+      fibs = append(fibs, tail(fibs,1) + tail(fibs,2)[1])
+    }
   }
-  # Se quisermos o valor exato, basta solicitar pelo ultimo elemento da sequencia criada
+    # Se quisermos o valor exato, basta solicitar pelo ultimo elemento da sequencia  criada
   if (exato) {
     return(tail(fibs,1))
   } else {
-    # Se quisermos a sequencia inteira, basta solicitar diretamente a sequencia criada
+      # Se quisermos a sequencia inteira, basta solicitar diretamente a sequencia criada
   return(fibs)
   }
 }
@@ -197,15 +219,19 @@ fib = function(n, exato = F) {
 
 ### Exemplos
 
-```{r q_5_2}
+```{r q_5_2, error=T}
 
 # Exemplo dos primeiros 15 termos
-
 fib(15)
 
 # Exemplo do termo numero 10
-
 fib(10, exato = T)
+
+# Exemplo de solicitacao de numero negativo
+fib(-4)
+
+# Exemplo de solicitacao de numero nao inteiro
+fib(pi)
 
 ```
 
